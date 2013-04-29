@@ -1,13 +1,25 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# These files are ignored by git
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
+# System
+.DS_Store
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+# Xcode
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.moved-aside
+project.xcworkspace/
+xcuserdata
+profile
+build
+
+# Android
+bin/
+gen/
+
+# Windows
+Debug.win32/
+Release.win32/
+*.ncb
+*.user
