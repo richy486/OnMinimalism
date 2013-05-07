@@ -64,14 +64,14 @@
 
 /* Begin PBXFileReference section */
 		41BC70AC15BF7CCE006A0A6C /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
-		41CD6C5115BF748C005E6F29 /* SuperPlatformer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SuperPlatformer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		41CD6C5115BF748C005E6F29 /* OnMinimalism.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnMinimalism.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		41CD6C6215BF7574005E6F29 /* AppController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppController.h; sourceTree = "<group>"; };
 		41CD6C6315BF7574005E6F29 /* AppController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppController.mm; sourceTree = "<group>"; };
 		41CD6C6415BF7574005E6F29 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		41CD6C6915BF7673005E6F29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = InfoPlist.strings; sourceTree = "<group>"; };
 		41CD6C6B15BF7673005E6F29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = MainMenu.xib; sourceTree = "<group>"; };
-		41CD6C6C15BF7673005E6F29 /* SuperPlatformer_Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = SuperPlatformer_Info.plist; sourceTree = "<group>"; };
-		41CD6C6D15BF7673005E6F29 /* SuperPlatformer_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SuperPlatformer_Prefix.pch; sourceTree = "<group>"; };
+		41CD6C6C15BF7673005E6F29 /* OnMinimalism_Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = OnMinimalism_Info.plist; sourceTree = "<group>"; };
+		41CD6C6D15BF7673005E6F29 /* OnMinimalism_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OnMinimalism_Prefix.pch; sourceTree = "<group>"; };
 		41CD6C7115BF76FB005E6F29 /* AppDelegate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AppDelegate.cpp; path = ../Classes/AppDelegate.cpp; sourceTree = "<group>"; };
 		41CD6C7215BF76FB005E6F29 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ../Classes/AppDelegate.h; sourceTree = "<group>"; };
 		41CD6C7315BF76FB005E6F29 /* HelloWorldScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldScene.cpp; path = ../Classes/HelloWorldScene.cpp; sourceTree = "<group>"; };
@@ -210,8 +210,8 @@
 				41CD6C6415BF7574005E6F29 /* main.m */,
 				41BC70AC15BF7CCE006A0A6C /* Icon.icns */,
 				41CD6C6715BF7673005E6F29 /* en.lproj */,
-				41CD6C6C15BF7673005E6F29 /* SuperPlatformer_Info.plist */,
-				41CD6C6D15BF7673005E6F29 /* SuperPlatformer_Prefix.pch */,
+				41CD6C6C15BF7673005E6F29 /* OnMinimalism_Info.plist */,
+				41CD6C6D15BF7673005E6F29 /* OnMinimalism_Prefix.pch */,
 			);
 			name = mac;
 			sourceTree = "<group>";
@@ -239,7 +239,7 @@
 		41EFC1BB15BF7AC30083EA95 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				41CD6C5115BF748C005E6F29 /* SuperPlatformer.app */,
+				41CD6C5115BF748C005E6F29 /* OnMinimalism.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -285,9 +285,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		41851B9115B93C32004083E9 /* SuperPlatformer */ = {
+		41851B9115B93C32004083E9 /* OnMinimalism */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 41851BB015B93C33004083E9 /* Build configuration list for PBXNativeTarget "SuperPlatformer" */;
+			buildConfigurationList = 41851BB015B93C33004083E9 /* Build configuration list for PBXNativeTarget "OnMinimalism" */;
 			buildPhases = (
 				41851B8E15B93C32004083E9 /* Sources */,
 				41851B8F15B93C32004083E9 /* Frameworks */,
@@ -298,9 +298,9 @@
 			dependencies = (
 				B99CCC5F172B70820082EB92 /* PBXTargetDependency */,
 			);
-			name = SuperPlatformer;
+			name = OnMinimalism;
 			productName = Paralaxer;
-			productReference = 41CD6C5115BF748C005E6F29 /* SuperPlatformer.app */;
+			productReference = 41CD6C5115BF748C005E6F29 /* OnMinimalism.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -312,7 +312,7 @@
 				LastUpgradeCheck = 0420;
 				ORGANIZATIONNAME = "Bullets in a Burning Box, Inc.";
 			};
-			buildConfigurationList = 41851B8C15B93C32004083E9 /* Build configuration list for PBXProject "SuperPlatformer" */;
+			buildConfigurationList = 41851B8C15B93C32004083E9 /* Build configuration list for PBXProject "OnMinimalism" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -330,7 +330,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				41851B9115B93C32004083E9 /* SuperPlatformer */,
+				41851B9115B93C32004083E9 /* OnMinimalism */,
 			);
 		};
 /* End PBXProject section */
@@ -471,7 +471,7 @@
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = SuperPlatformer_Prefix.pch;
+				GCC_PREFIX_HEADER = OnMinimalism_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					TARGET_OS_MAC,
 					"DEBUG=1",
@@ -489,12 +489,12 @@
 					"\"$(SRCROOT)/../../../cocos2dx/platform/mac\"",
 					"\"$(SRCROOT)/../../../cocos2dx/kazmath/include\"",
 				);
-				INFOPLIST_FILE = SuperPlatformer_Info.plist;
+				INFOPLIST_FILE = OnMinimalism_Info.plist;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = SuperPlatformer;
+				PRODUCT_NAME = OnMinimalism;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -507,7 +507,7 @@
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = SuperPlatformer_Prefix.pch;
+				GCC_PREFIX_HEADER = OnMinimalism_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					USE_FILE32API,
 					TARGET_OS_MAC,
@@ -524,12 +524,12 @@
 					"\"$(SRCROOT)/../../../cocos2dx/platform/mac\"",
 					"\"$(SRCROOT)/../../../cocos2dx/kazmath/include\"",
 				);
-				INFOPLIST_FILE = SuperPlatformer_Info.plist;
+				INFOPLIST_FILE = OnMinimalism_Info.plist;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = SuperPlatformer;
+				PRODUCT_NAME = OnMinimalism;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -537,7 +537,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		41851B8C15B93C32004083E9 /* Build configuration list for PBXProject "SuperPlatformer" */ = {
+		41851B8C15B93C32004083E9 /* Build configuration list for PBXProject "OnMinimalism" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				41851BAE15B93C33004083E9 /* Debug */,
@@ -546,7 +546,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		41851BB015B93C33004083E9 /* Build configuration list for PBXNativeTarget "SuperPlatformer" */ = {
+		41851BB015B93C33004083E9 /* Build configuration list for PBXNativeTarget "OnMinimalism" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				41851BB115B93C33004083E9 /* Debug */,
