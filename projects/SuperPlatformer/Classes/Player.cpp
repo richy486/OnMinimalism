@@ -229,22 +229,31 @@ void Player::draw()
 
 void ccFillPoly( CCPoint *poli, int points, bool closePolygon )
 {
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+    ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position );
+    kmGLPushMatrix();
+#else
     // Default GL states: GL_TEXTURE_2D, GL_VERTEX_ARRAY, GL_COLOR_ARRAY, GL_TEXTURE_COORD_ARRAY
     // Needed states: GL_VERTEX_ARRAY,
     // Unneeded states: GL_TEXTURE_2D, GL_TEXTURE_COORD_ARRAY, GL_COLOR_ARRAY
     glDisable(GL_TEXTURE_2D);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
-    
     glVertexPointer(2, GL_FLOAT, 0, poli);
+#endif
+    
     if( closePolygon )
         //	 glDrawArrays(GL_LINE_LOOP, 0, points);
         glDrawArrays(GL_TRIANGLE_FAN, 0, points);
     else
         glDrawArrays(GL_LINE_STRIP, 0, points);
     
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+    kmGLPopMatrix();
+#else
     // restore default state
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnable(GL_TEXTURE_2D);
+#endif
 }
