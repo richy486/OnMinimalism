@@ -564,10 +564,14 @@ void LevelManager::setupLevel(int index, cocos2d::CCArray *blocks, int *exits)
             break;
         case 17:
         {
-            for (int i = 0; i < 7; ++i)
+            for (int i = 0; i < 3; ++i)
             {
                 Block *block = new Block();
-                block->init(size.width, 30, CCPointMake(size.width/2 + (i%2==0 ? -40 : 40), 40 + (i * 40)));
+                block->init(size.width
+                            , 30
+                            , CCPointMake(size.width/2 + (i%2==0 ? -40 : 40)
+                                          , 80 + (i * 80)
+                           ));
                 blocks->addObject(block);
             }
             
