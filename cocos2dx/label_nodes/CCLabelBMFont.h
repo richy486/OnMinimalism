@@ -104,6 +104,8 @@ typedef struct _KerningHashElement
 
 /** @brief CCBMFontConfiguration has parsed configuration of the the .fnt file
 @since v0.8
+@js NA
+@lua NA
 */
 class CC_DLL CCBMFontConfiguration : public CCObject
 {
@@ -125,7 +127,15 @@ public://@public
     std::set<unsigned int> *m_pCharacterSet;
 public:
     CCBMFontConfiguration();
+    /**
+     *  @js NA
+     *  @lua NA
+     */
     virtual ~CCBMFontConfiguration();
+    /**
+     *  @js NA
+     *  @lua NA
+     */
     const char * description();
 
     /** allocates a CCBMFontConfiguration with a FNT file */
@@ -182,8 +192,14 @@ http://www.angelcode.com/products/bmfont/ (Free, Windows only)
 class CC_DLL CCLabelBMFont : public CCSpriteBatchNode, public CCLabelProtocol, public CCRGBAProtocol
 {
 public:
+    /**
+     *  @js ctor
+     */
     CCLabelBMFont();
-
+    /**
+     *  @js NA
+     *  @lua NA
+     */
     virtual ~CCLabelBMFont();
     /** Purges the cached data.
     Removes from memory the cached configurations and the atlas name dictionary.
@@ -211,9 +227,9 @@ public:
     /** updates the font chars based on the string to render */
     void createFontChars();
     // super method
-    virtual void setString(const char *label);
-    virtual void setString(const char *label, bool fromUpdate);
-    virtual void updateString(bool fromUpdate);
+    virtual void setString(const char *newString);
+    virtual void setString(const char *newString, bool needUpdateLabel);
+
     virtual const char* getString(void);
     virtual void setCString(const char *label);
     virtual void setAnchorPoint(const CCPoint& var);
@@ -242,6 +258,7 @@ public:
 
     void setFntFile(const char* fntFile);
     const char* getFntFile();
+	CCBMFontConfiguration* getConfiguration() const;
 #if CC_LABELBMFONT_DEBUG_DRAW
     virtual void draw();
 #endif // CC_LABELBMFONT_DEBUG_DRAW
@@ -252,6 +269,7 @@ private:
     float getLetterPosXRight( CCSprite* characterSprite );
     
 protected:
+    virtual void setString(unsigned short *newString, bool needUpdateLabel);
     // string to render
     unsigned short* m_sString;
     
@@ -259,7 +277,9 @@ protected:
     std::string m_sFntFile;
     
     // initial string without line breaks
-    std::string m_sInitialString;
+    unsigned short* m_sInitialString;
+    std::string m_sInitialStringUTF8;
+    
     // alignment of all lines
     CCTextAlignment m_pAlignment;
     // max width until a line break is added

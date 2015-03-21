@@ -117,6 +117,21 @@ public:
                     nFindPos = fontName.rfind(".");
                     fontName = fontName.substr(0,nFindPos);                
                 }
+                else
+                {
+                    size_t nFindPos = fontName.rfind("/");
+                    if (nFindPos != fontName.npos)
+                    {
+                        if (fontName.length() == nFindPos + 1)
+                        {
+                            fontName = "";
+                        } 
+                        else
+                        {
+                            fontName = &fontName[nFindPos+1];
+                        }
+                    }
+                }
                 tNewFont.lfCharSet = DEFAULT_CHARSET;
                 strcpy_s(tNewFont.lfFaceName, LF_FACESIZE, fontName.c_str());
             }
@@ -375,7 +390,6 @@ bool CCImage::initWithString(
                                int             nSize/* = 0*/)
 {
     bool bRet = false;
-    unsigned char * pImageData = 0;
     do 
     {
         CC_BREAK_IF(! pText);       
@@ -391,8 +405,8 @@ bool CCImage::initWithString(
         SIZE size = {nWidth, nHeight};
         CC_BREAK_IF(! dc.drawText(pText, size, eAlignMask));
 
-        pImageData = new unsigned char[size.cx * size.cy * 4];
-        CC_BREAK_IF(! pImageData);
+        m_pData = new unsigned char[size.cx * size.cy * 4];
+        CC_BREAK_IF(! m_pData);
 
         struct
         {
@@ -407,8 +421,6 @@ bool CCImage::initWithString(
         m_nHeight   = (short)size.cy;
         m_bHasAlpha = true;
         m_bPreMulti = false;
-        m_pData     = pImageData;
-        pImageData  = 0;
         m_nBitsPerComponent = 8;
         // copy pixed data
         bi.bmiHeader.biHeight = (bi.bmiHeader.biHeight > 0)
@@ -424,10 +436,8 @@ bool CCImage::initWithString(
             for (int x = 0; x < m_nWidth; ++x)
             {
                 COLORREF& clr = *pPixel;
-                if (GetRValue(clr) || GetGValue(clr) || GetBValue(clr))
-                {
-                    clr |= 0xff000000;
-                }
+
+                clr |= (0xffffff | (GetRValue(clr) << 24));
                 ++pPixel;
             }
         }

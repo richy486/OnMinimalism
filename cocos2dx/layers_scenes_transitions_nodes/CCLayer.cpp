@@ -47,10 +47,8 @@ CCLayer::CCLayer()
 : m_bTouchEnabled(false)
 , m_bAccelerometerEnabled(false)
 , m_bKeypadEnabled(false)
-, m_bKeyboardEnabled(false)
 , m_pScriptTouchHandlerEntry(NULL)
 , m_pScriptKeypadHandlerEntry(NULL)
-, m_pScriptKeyboardHandlerEntry(NULL)
 , m_pScriptAccelerateHandlerEntry(NULL)
 , m_nTouchPriority(0)
 , m_eTouchMode(kCCTouchesAllAtOnce)
@@ -63,7 +61,6 @@ CCLayer::~CCLayer()
 {
     unregisterScriptTouchHandler();
     unregisterScriptKeypadHandler();
-    unregisterScriptKeyboardHandler();
     unregisterScriptAccelerateHandler();
 }
 
@@ -318,7 +315,7 @@ void CCLayer::unregisterScriptKeypadHandler(void)
 
 void CCLayer::keyBackClicked(void)
 {
-    if (m_pScriptKeypadHandlerEntry)
+    if (m_pScriptKeypadHandlerEntry || m_eScriptType == kScriptTypeJavascript)
     {
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeLayerKeypadEvent(this, kTypeBackClicked);
     }
@@ -329,45 +326,6 @@ void CCLayer::keyMenuClicked(void)
     if (m_pScriptKeypadHandlerEntry)
     {
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeLayerKeypadEvent(this, kTypeMenuClicked);
-    }
-}
-
-void CCLayer::registerScriptKeyboardHandler(int nHandler)
-{
-    unregisterScriptKeyboardHandler();
-    m_pScriptKeyboardHandlerEntry = CCScriptHandlerEntry::create(nHandler);
-    m_pScriptKeyboardHandlerEntry->retain();
-}
-
-void CCLayer::unregisterScriptKeyboardHandler(void)
-{
-    CC_SAFE_RELEASE_NULL(m_pScriptKeyboardHandlerEntry);
-}
-
-/// isKeyboardEnabled getter
-bool CCLayer::isKeyboardEnabled()
-{
-    return m_bKeyboardEnabled;
-}
-/// isKeyboardEnabled setter
-void CCLayer::setKeyboardEnabled(bool enabled)
-{
-    if (enabled != m_bKeyboardEnabled)
-    {
-        m_bKeyboardEnabled = enabled;
-        
-        if (m_bRunning)
-        {
-            CCDirector* pDirector = CCDirector::sharedDirector();
-            if (enabled)
-            {
-                pDirector->getKeyboardDispatcher()->addDelegate(this, 0);
-            }
-            else
-            {
-                pDirector->getKeyboardDispatcher()->removeDelegate(this);
-            }
-        }
     }
 }
 
@@ -413,12 +371,6 @@ void CCLayer::onExit()
     {
         pDirector->getAccelerometer()->setDelegate(NULL);
     }
-    
-    // remove this layer from the delegates who concern the keyboard
-    if (m_bKeyboardEnabled)
-    {
-        pDirector->getKeyboardDispatcher()->removeDelegate(this);
-    }
 
     // remove this layer from the delegates who concern the keypad msg
     if (m_bKeypadEnabled)
@@ -435,12 +387,6 @@ void CCLayer::onEnterTransitionDidFinish()
     {
         CCDirector* pDirector = CCDirector::sharedDirector();
         pDirector->getAccelerometer()->setDelegate(this);
-    }
-    
-    if (m_bKeyboardEnabled)
-    {
-        CCDirector* pDirector = CCDirector::sharedDirector();
-        pDirector->getKeyboardDispatcher()->addDelegate(this, 0);
     }
     
     CCNode::onEnterTransitionDidFinish();
@@ -567,7 +513,6 @@ void CCLayer::flagsChanged(CCKeyboard *pKeyboard)
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeLayerKeyboardEvent(this, CCKEYFLAGSCHANGED, pKeyboard);
     }
 }
-
 
 // LayerRGBA
 CCLayerRGBA::CCLayerRGBA()
@@ -790,7 +735,7 @@ bool CCLayerColor::initWithColor(const ccColor4B& color, GLfloat w, GLfloat h)
         _displayedColor.r = _realColor.r = color.r;
         _displayedColor.g = _realColor.g = color.g;
         _displayedColor.b = _realColor.b = color.b;
-        _displayedOpacity = color.a;
+        _displayedOpacity = _realOpacity = color.a;
 
         for (size_t i = 0; i<sizeof(m_pSquareVertices) / sizeof( m_pSquareVertices[0]); i++ )
         {
@@ -859,8 +804,16 @@ void CCLayerColor::draw()
     //
     // Attributes
     //
+#ifdef EMSCRIPTEN
+    setGLBufferData(m_pSquareVertices, 4 * sizeof(ccVertex2F), 0);
+    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    setGLBufferData(m_pSquareColors, 4 * sizeof(ccColor4F), 1);
+    glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_FLOAT, GL_FALSE, 0, 0);
+#else
     glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, m_pSquareVertices);
     glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_FLOAT, GL_FALSE, 0, m_pSquareColors);
+#endif // EMSCRIPTEN
 
     ccGLBlendFunc( m_tBlendFunc.src, m_tBlendFunc.dst );
 

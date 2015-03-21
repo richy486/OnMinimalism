@@ -63,6 +63,14 @@ class CCSprite;
 class CC_DLL CCSpriteBatchNode : public CCNode, public CCTextureProtocol
 {
 public:
+    /**
+     *  @js ctor
+     */
+    CCSpriteBatchNode();
+    /**
+     * @js NA
+     * @lua NA
+     */
     ~CCSpriteBatchNode();
 
     // property
@@ -130,6 +138,9 @@ public:
     virtual CCTexture2D* getTexture(void);
     virtual void setTexture(CCTexture2D *texture);
     virtual void setBlendFunc(ccBlendFunc blendFunc);
+    /**
+     * @js NA
+     */
     virtual ccBlendFunc getBlendFunc(void);
 
     virtual void visit(void);

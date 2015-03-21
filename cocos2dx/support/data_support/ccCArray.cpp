@@ -100,11 +100,13 @@ void ccArrayShrink(ccArray *arr)
 /** Returns index of first occurrence of object, CC_INVALID_INDEX if object not found. */
 unsigned int ccArrayGetIndexOfObject(ccArray *arr, CCObject* object)
 {
-	for(unsigned int i = 0; i < arr->num; i++)
+    const unsigned int arrNum = arr->num;
+    CCObject** ptr = arr->arr;
+	for(unsigned int i = 0; i < arrNum; ++i, ++ptr)
     {
-		if( arr->arr[i] == object ) return i;
+		if( *ptr == object ) return i;
     }
-
+    
 	return CC_INVALID_INDEX;
 }
 
@@ -269,8 +271,10 @@ void ccArrayFullRemoveArray(ccArray *arr, ccArray *minusArr)
 	arr->num -= back;
 }
 
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 // #pragma mark -
 // #pragma mark ccCArray for Values (c structures)
+#endif
 
 /** Allocates and initializes a new C array with specified capacity */
 ccCArray* ccCArrayNew(unsigned int capacity)

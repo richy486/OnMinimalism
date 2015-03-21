@@ -24,21 +24,10 @@
 
 #include "platform/CCImage.h"
 #include "textures/CCTexture2D.h"
-#ifdef __native_client__
+#if defined(__native_client__) || defined(EMSCRIPTEN)
 // TODO(sbc): I'm pretty sure all platforms should be including
 // webph headers in this way.
-
-// i dunno
-//#include "platform/third_party/win32/libwebp/decode.h"
-//#include "webp/decode.h"
-#include "decode.h"
-/*
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-#include "platform/third_party/win32/libwebp/decode.h"
-#else
 #include "webp/decode.h"
-#endif
-*/
 #else
 #include "decode.h"
 #endif

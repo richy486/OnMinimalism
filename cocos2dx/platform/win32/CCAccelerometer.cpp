@@ -25,7 +25,6 @@
 #include "CCEGLView.h"
 #include "CCDirector.h"
 #include "ccMacros.h"
-#include "keypad_dispatcher/CCKeypadDispatcher.h"
 
 namespace
 {
@@ -116,12 +115,9 @@ namespace
         {
         case WM_KEYDOWN:
             sendUpdate=handleKeyDown( wParam );
-			
             break;
         case WM_KEYUP:
             sendUpdate=handleKeyUp( wParam );
-
-			
             break;
         case WM_CHAR:
             // Deliberately empty - all handled through key up and down events

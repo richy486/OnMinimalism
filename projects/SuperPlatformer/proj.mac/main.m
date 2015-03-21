@@ -26,5 +26,6 @@
 
 int main(int argc, char *argv[])
 {
+    [NSApp activateIgnoringOtherApps:YES];
 	return NSApplicationMain(argc, (const char **)argv);
 }

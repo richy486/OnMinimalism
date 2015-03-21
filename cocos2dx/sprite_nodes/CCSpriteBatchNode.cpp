@@ -113,6 +113,12 @@ bool CCSpriteBatchNode::initWithFile(const char* fileImage, unsigned int capacit
     return initWithTexture(pTexture2D, capacity);
 }
 
+CCSpriteBatchNode::CCSpriteBatchNode()
+: m_pobTextureAtlas(NULL)
+, m_pobDescendants(NULL)
+{
+}
+
 CCSpriteBatchNode::~CCSpriteBatchNode()
 {
     CC_SAFE_RELEASE(m_pobTextureAtlas);
@@ -756,9 +762,8 @@ CCSpriteBatchNode * CCSpriteBatchNode::addSpriteWithoutQuad(CCSprite*child, unsi
     {
         CCSprite* pChild = (CCSprite*) pObject;
         if (pChild && (pChild->getAtlasIndex() >= z))
-        {
-            ++i;
-        }
+            break;
+        ++i;
     }
     
     m_pobDescendants->insertObject(child, i);

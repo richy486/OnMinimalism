@@ -36,6 +36,8 @@ class CCTextFieldTTF;
 /**
  * @addtogroup input
  * @{
+ * @js NA
+ * @lua NA
  */
 
 class CC_DLL CCTextFieldDelegate
@@ -45,7 +47,7 @@ public:
     @brief    If the sender doesn't want to attach to the IME, return true;
     */
     virtual bool onTextFieldAttachWithIME(CCTextFieldTTF * sender)
-    { 
+    {
         CC_UNUSED_PARAM(sender);
         return false;
     }
@@ -93,11 +95,18 @@ public:
 
 /**
 @brief    A simple text input field with TTF font.
+@js NA
 */
 class CC_DLL CCTextFieldTTF : public CCLabelTTF, public CCIMEDelegate
 {
 public:
+    /**
+     *  @lua NA
+     */
     CCTextFieldTTF();
+    /**
+     *  @lua NA
+     */
     virtual ~CCTextFieldTTF();
 
     //char * description();
@@ -124,7 +133,7 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // properties
     //////////////////////////////////////////////////////////////////////////
-    
+
     CC_SYNTHESIZE(CCTextFieldDelegate *, m_pDelegate, Delegate);
     CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
@@ -145,6 +154,11 @@ public:
 protected:
     std::string * m_pPlaceHolder;
     ccColor3B m_ColorSpaceHolder;
+public:
+    virtual void setSecureTextEntry(bool value);
+    virtual bool isSecureTextEntry();
+protected:
+    bool m_bSecureTextEntry;
 protected:
 
     virtual void draw();

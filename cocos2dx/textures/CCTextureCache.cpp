@@ -2,6 +2,7 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2011      Zynga Inc.
+Copyright (c) Microsoft Open Technologies, Inc.
 
 http://www.cocos2d-x.org
 
@@ -41,8 +42,15 @@ THE SOFTWARE.
 #include <cctype>
 #include <queue>
 #include <list>
+
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
 #include <pthread.h>
-#include <semaphore.h>
+#else
+#include "CCPThreadWinRT.h"
+#include <ppl.h>
+#include <ppltasks.h>
+using namespace concurrency;
+#endif
 
 using namespace std;
 
@@ -64,30 +72,25 @@ typedef struct _ImageInfo
 
 static pthread_t s_loadingThread;
 
+static pthread_mutex_t		s_SleepMutex;
+static pthread_cond_t		s_SleepCondition;
+
 static pthread_mutex_t      s_asyncStructQueueMutex;
 static pthread_mutex_t      s_ImageInfoMutex;
 
-static sem_t* s_pSem = NULL;
+#ifdef EMSCRIPTEN
+// Hack to get ASM.JS validation (no undefined symbols allowed).
+#define pthread_cond_signal(_)
+#endif // EMSCRIPTEN
+
 static unsigned long s_nAsyncRefCount = 0;
-
-#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS
-    #define CC_ASYNC_TEXTURE_CACHE_USE_NAMED_SEMAPHORE 1
-#else
-    #define CC_ASYNC_TEXTURE_CACHE_USE_NAMED_SEMAPHORE 0
-#endif
-    
-
-#if CC_ASYNC_TEXTURE_CACHE_USE_NAMED_SEMAPHORE
-    #define CC_ASYNC_TEXTURE_CACHE_SEMAPHORE "ccAsync"
-#else
-    static sem_t s_sem;
-#endif
-
 
 static bool need_quit = false;
 
 static std::queue<AsyncStruct*>* s_pAsyncStructQueue = NULL;
+
 static std::queue<ImageInfo*>*   s_pImageQueue = NULL;
+
 
 static CCImage::EImageFormat computeImageFormatType(string& filename)
 {
@@ -105,12 +108,47 @@ static CCImage::EImageFormat computeImageFormatType(string& filename)
     {
         ret = CCImage::kFmtTiff;
     }
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
     else if ((std::string::npos != filename.find(".webp")) || (std::string::npos != filename.find(".WEBP")))
     {
         ret = CCImage::kFmtWebp;
     }
+#endif
    
     return ret;
+}
+
+static void loadImageData(AsyncStruct *pAsyncStruct)
+{
+    const char *filename = pAsyncStruct->filename.c_str();
+
+    // compute image type
+    CCImage::EImageFormat imageType = computeImageFormatType(pAsyncStruct->filename);
+    if (imageType == CCImage::kFmtUnKnown)
+    {
+        CCLOG("unsupported format %s",filename);
+        delete pAsyncStruct;
+        return;
+    }
+        
+    // generate image            
+    CCImage *pImage = new CCImage();
+    if (pImage && !pImage->initWithImageFileThreadSafe(filename, imageType))
+    {
+        CC_SAFE_RELEASE(pImage);
+        CCLOG("can not load %s", filename);
+        return;
+    }
+
+    // generate image info
+    ImageInfo *pImageInfo = new ImageInfo();
+    pImageInfo->asyncStruct = pAsyncStruct;
+    pImageInfo->image = pImage;
+    pImageInfo->imageType = imageType;
+    // put the image info into the queue
+    pthread_mutex_lock(&s_ImageInfoMutex);
+    s_pImageQueue->push(pImageInfo);
+    pthread_mutex_unlock(&s_ImageInfoMutex);   
 }
 
 static void* loadImage(void* data)
@@ -122,81 +160,45 @@ static void* loadImage(void* data)
         // create autorelease pool for iOS
         CCThread thread;
         thread.createAutoreleasePool();
-        
-        // wait for rendering thread to ask for loading if s_pAsyncStructQueue is empty
-        int semWaitRet = sem_wait(s_pSem);
-        if( semWaitRet < 0 )
-        {
-            CCLOG( "CCTextureCache async thread semaphore error: %s\n", strerror( errno ) );
-            break;
-        }
 
         std::queue<AsyncStruct*> *pQueue = s_pAsyncStructQueue;
-
         pthread_mutex_lock(&s_asyncStructQueueMutex);// get async struct from queue
         if (pQueue->empty())
         {
             pthread_mutex_unlock(&s_asyncStructQueueMutex);
-            if (need_quit)
+            if (need_quit) {
                 break;
-            else
+            }
+            else {
+                pthread_cond_wait(&s_SleepCondition, &s_SleepMutex);
                 continue;
+            }
         }
         else
         {
             pAsyncStruct = pQueue->front();
             pQueue->pop();
             pthread_mutex_unlock(&s_asyncStructQueueMutex);
+            loadImageData(pAsyncStruct);
         }        
-
-        const char *filename = pAsyncStruct->filename.c_str();
-
-        // compute image type
-        CCImage::EImageFormat imageType = computeImageFormatType(pAsyncStruct->filename);
-        if (imageType == CCImage::kFmtUnKnown)
-        {
-            CCLOG("unsupported format %s",filename);
-            delete pAsyncStruct;
-            
-            continue;
-        }
-        
-        // generate image            
-        CCImage *pImage = new CCImage();
-        if (pImage && !pImage->initWithImageFileThreadSafe(filename, imageType))
-        {
-            CC_SAFE_RELEASE(pImage);
-            CCLOG("can not load %s", filename);
-            continue;
-        }
-
-        // generate image info
-        ImageInfo *pImageInfo = new ImageInfo();
-        pImageInfo->asyncStruct = pAsyncStruct;
-        pImageInfo->image = pImage;
-        pImageInfo->imageType = imageType;
-
-        // put the image info into the queue
-        pthread_mutex_lock(&s_ImageInfoMutex);
-        s_pImageQueue->push(pImageInfo);
-        pthread_mutex_unlock(&s_ImageInfoMutex);    
     }
     
-    if( s_pSem != NULL )
+    if( s_pAsyncStructQueue != NULL )
     {
-    #if CC_ASYNC_TEXTURE_CACHE_USE_NAMED_SEMAPHORE
-        sem_unlink(CC_ASYNC_TEXTURE_CACHE_SEMAPHORE);
-        sem_close(s_pSem);
-    #else
-        sem_destroy(s_pSem);
-    #endif
-        s_pSem = NULL;
         delete s_pAsyncStructQueue;
+        s_pAsyncStructQueue = NULL;
         delete s_pImageQueue;
+        s_pImageQueue = NULL;
+
+        pthread_mutex_destroy(&s_asyncStructQueueMutex);
+        pthread_mutex_destroy(&s_ImageInfoMutex);
+        pthread_mutex_destroy(&s_SleepMutex);
+        pthread_cond_destroy(&s_SleepCondition);
     }
     
     return 0;
 }
+
 
 // implementation CCTextureCache
 
@@ -223,11 +225,7 @@ CCTextureCache::~CCTextureCache()
 {
     CCLOGINFO("cocos2d: deallocing CCTextureCache.");
     need_quit = true;
-    if (s_pSem != NULL)
-    {
-        sem_post(s_pSem);
-    }
-    
+    pthread_cond_signal(&s_SleepCondition);
     CC_SAFE_RELEASE(m_pTextures);
 }
 
@@ -249,11 +247,17 @@ CCDictionary* CCTextureCache::snapshotTextures()
     {
         pRet->setObject(pElement->getObject(), pElement->getStrKey());
     }
+    pRet->autorelease();
     return pRet;
 }
 
 void CCTextureCache::addImageAsync(const char *path, CCObject *target, SEL_CallFuncO selector)
 {
+#ifdef EMSCRIPTEN
+    CCLOGWARN("Cannot load image %s asynchronously in Emscripten builds.", path);
+    return;
+#endif // EMSCRIPTEN
+
     CCAssert(path != NULL, "TextureCache: fileimage MUST not be NULL");    
 
     CCTexture2D *texture = NULL;
@@ -263,9 +267,12 @@ void CCTextureCache::addImageAsync(const char *path, CCObject *target, SEL_CallF
     std::string pathKey = path;
 
     pathKey = CCFileUtils::sharedFileUtils()->fullPathForFilename(pathKey.c_str());
+
     texture = (CCTexture2D*)m_pTextures->objectForKey(pathKey.c_str());
 
     std::string fullpath = pathKey;
+
+
     if (texture != NULL)
     {
         if (target && selector)
@@ -276,33 +283,20 @@ void CCTextureCache::addImageAsync(const char *path, CCObject *target, SEL_CallF
         return;
     }
 
+
     // lazy init
-    if (s_pSem == NULL)
+    if (s_pAsyncStructQueue == NULL)
     {             
-#if CC_ASYNC_TEXTURE_CACHE_USE_NAMED_SEMAPHORE
-        s_pSem = sem_open(CC_ASYNC_TEXTURE_CACHE_SEMAPHORE, O_CREAT, 0644, 0);
-        if( s_pSem == SEM_FAILED )
-        {
-            CCLOG( "CCTextureCache async thread semaphore init error: %s\n", strerror( errno ) );
-            s_pSem = NULL;
-            return;
-        }
-#else
-        int semInitRet = sem_init(&s_sem, 0, 0);
-        if( semInitRet < 0 )
-        {
-            CCLOG( "CCTextureCache async thread semaphore init error: %s\n", strerror( errno ) );
-            return;
-        }
-        s_pSem = &s_sem;
-#endif
         s_pAsyncStructQueue = new queue<AsyncStruct*>();
         s_pImageQueue = new queue<ImageInfo*>();        
         
         pthread_mutex_init(&s_asyncStructQueueMutex, NULL);
         pthread_mutex_init(&s_ImageInfoMutex, NULL);
+        pthread_mutex_init(&s_SleepMutex, NULL);
+        pthread_cond_init(&s_SleepCondition, NULL);
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
         pthread_create(&s_loadingThread, NULL, loadImage, NULL);
-
+#endif
         need_quit = false;
     }
 
@@ -324,12 +318,19 @@ void CCTextureCache::addImageAsync(const char *path, CCObject *target, SEL_CallF
     data->target = target;
     data->selector = selector;
 
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
     // add async struct into queue
     pthread_mutex_lock(&s_asyncStructQueueMutex);
     s_pAsyncStructQueue->push(data);
     pthread_mutex_unlock(&s_asyncStructQueueMutex);
-
-    sem_post(s_pSem);
+    pthread_cond_signal(&s_SleepCondition);
+#else
+    // WinRT uses an Async Task to load the image since the ThreadPool has a limited number of threads
+    //std::replace( data->filename.begin(), data->filename.end(), '/', '\\'); 
+    create_task([this, data] {
+        loadImageData(data);
+    });
+#endif
 }
 
 void CCTextureCache::addImageAsyncCallBack(float dt)
@@ -426,6 +427,11 @@ CCTexture2D * CCTextureCache::addImage(const char * path)
             {
                 texture = this->addPVRImage(fullpath.c_str());
             }
+            else if (std::string::npos != lowerCase.find(".pkm"))
+            {
+                // ETC1 file format, only supportted on Android
+                texture = this->addETCImage(fullpath.c_str());
+            }
             else
             {
                 CCImage::EImageFormat eImageFormat = CCImage::kFmtUnKnown;
@@ -449,11 +455,7 @@ CCTexture2D * CCTextureCache::addImage(const char * path)
                 pImage = new CCImage();
                 CC_BREAK_IF(NULL == pImage);
 
-                unsigned long nSize = 0;
-                unsigned char* pBuffer = CCFileUtils::sharedFileUtils()->getFileData(fullpath.c_str(), "rb", &nSize);
-                
-                bool bRet = pImage->initWithImageData((void*)pBuffer, nSize, eImageFormat);
-                CC_SAFE_DELETE_ARRAY(pBuffer);
+                bool bRet = pImage->initWithImageFile(fullpath.c_str(), eImageFormat);
                 CC_BREAK_IF(!bRet);
 
                 texture = new CCTexture2D();
@@ -481,45 +483,6 @@ CCTexture2D * CCTextureCache::addImage(const char * path)
     //pthread_mutex_unlock(m_pDictLock);
     return texture;
 }
-
-#ifdef CC_SUPPORT_PVRTC
-CCTexture2D* CCTextureCache::addPVRTCImage(const char* path, int bpp, bool hasAlpha, int width)
-{
-    CCAssert(path != NULL, "TextureCache: fileimage MUST not be nil");
-    CCAssert( bpp==2 || bpp==4, "TextureCache: bpp must be either 2 or 4");
-
-    CCTexture2D * texture;
-
-    std::string temp(path);
-    
-    if ( (texture = (CCTexture2D*)m_pTextures->objectForKey(temp.c_str())) )
-    {
-        return texture;
-    }
-    
-    // Split up directory and filename
-    std::string fullpath( CCFileUtils::sharedFileUtils()->fullPathForFilename(path) );
-
-    unsigned long nLen = 0;
-    unsigned char* pData = CCFileUtils::sharedFileUtils()->getFileData(fullpath.c_str(), "rb", &nLen);
-
-    texture = new CCTexture2D();
-    
-    if( texture->initWithPVRTCData(pData, 0, bpp, hasAlpha, width,
-                                   (bpp==2 ? kCCTexture2DPixelFormat_PVRTC2 : kCCTexture2DPixelFormat_PVRTC4)))
-    {
-        m_pTextures->setObject(texture, temp.c_str());
-        texture->autorelease();
-    }
-    else
-    {
-        CCLOG("cocos2d: Couldn't add PVRTCImage:%s in CCTextureCache",path);
-    }
-    CC_SAFE_DELETE_ARRAY(pData);
-
-    return texture;
-}
-#endif // CC_SUPPORT_PVRTC
 
 CCTexture2D * CCTextureCache::addPVRImage(const char* path)
 {
@@ -551,6 +514,35 @@ CCTexture2D * CCTextureCache::addPVRImage(const char* path)
         CC_SAFE_DELETE(texture);
     }
 
+    return texture;
+}
+
+CCTexture2D* CCTextureCache::addETCImage(const char* path)
+{
+    CCAssert(path != NULL, "TextureCache: fileimage MUST not be nil");
+    
+    CCTexture2D* texture = NULL;
+    std::string key(path);
+    
+    if( (texture = (CCTexture2D*)m_pTextures->objectForKey(key.c_str())) )
+    {
+        return texture;
+    }
+    
+    // Split up directory and filename
+    std::string fullpath = CCFileUtils::sharedFileUtils()->fullPathForFilename(key.c_str());
+    texture = new CCTexture2D();
+    if(texture != NULL && texture->initWithETCFile(fullpath.c_str()))
+    {
+        m_pTextures->setObject(texture, key.c_str());
+        texture->autorelease();
+    }
+    else
+    {
+        CCLOG("cocos2d: Couldn't add ETCImage:%s in CCTextureCache",key.c_str());
+        CC_SAFE_DELETE(texture);
+    }
+    
     return texture;
 }
 
@@ -598,6 +590,37 @@ CCTexture2D* CCTextureCache::addUIImage(CCImage *image, const char *key)
 #endif
     
     return texture;
+}
+
+bool CCTextureCache::reloadTexture(const char* fileName)
+{
+    std::string fullpath = CCFileUtils::sharedFileUtils()->fullPathForFilename(fileName);
+    if (fullpath.size() == 0)
+    {
+        return false;
+    }
+    
+    CCTexture2D * texture = (CCTexture2D*) m_pTextures->objectForKey(fullpath);
+    
+    bool ret = false;
+    if (! texture) {
+        texture = this->addImage(fullpath.c_str());
+        ret = (texture != NULL);
+    }
+    else
+    {
+        do {
+            CCImage* image = new CCImage();
+            CC_BREAK_IF(NULL == image);
+            
+            bool bRet = image->initWithImageFile(fullpath.c_str());
+            CC_BREAK_IF(!bRet);
+            
+            ret = texture->initWithImage(image);
+        } while (0);
+    }
+    
+    return ret;
 }
 
 // TextureCache - Remove

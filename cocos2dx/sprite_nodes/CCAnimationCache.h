@@ -50,9 +50,18 @@ Before v0.99.5, the recommend way was to save them on the CCSprite. Since v0.99.
 class CC_DLL CCAnimationCache : public CCObject
 {
 public:
+    /**
+     * @js ctor
+     */
     CCAnimationCache();
+    /**
+     * @js NA
+     * @lua NA
+     */
     ~CCAnimationCache();
-    /** Returns the shared instance of the Animation cache */
+    /** Returns the shared instance of the Animation cache 
+     *  @js getInstance
+     */
     static CCAnimationCache* sharedAnimationCache(void);
 
     /** Purges the cache. It releases all the CCAnimation objects and the shared instance.
@@ -64,24 +73,28 @@ public:
     void addAnimation(CCAnimation *animation, const char * name);
 
     /** Deletes a CCAnimation from the cache.
-    */
+     *@js removeAnimation
+     */
     void removeAnimationByName(const char* name);
 
     /** Returns a CCAnimation that was previously added.
     If the name is not found it will return nil.
     You should retain the returned copy if you are going to use it.
+    @js getAnimation
     */
     CCAnimation* animationByName(const char* name);
 
     /** Adds an animation from an NSDictionary
      Make sure that the frames were previously loaded in the CCSpriteFrameCache.
+     @param plist The path of the relative file,it use to find the plist path for load SpriteFrames.
      @since v1.1
      */
-    void addAnimationsWithDictionary(CCDictionary* dictionary);
+    void addAnimationsWithDictionary(CCDictionary* dictionary,const char* plist = NULL);
 
     /** Adds an animation from a plist file.
      Make sure that the frames were previously loaded in the CCSpriteFrameCache.
      @since v1.1
+     @js addAnimations
      */
     void addAnimationsWithFile(const char* plist);
 
