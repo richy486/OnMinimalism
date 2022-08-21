@@ -159,6 +159,24 @@ void Player::update(float dt)
 }
 
 //void Player::draw()
+
+void ccDrawSolidCircle(const CCPoint& center, float radius, float angle, unsigned int segments, float scaleX, float scaleY, ccColor4F color)
+{
+    // Copypaste from ccDrawCircle to build poli buffer.
+    const float coef = 2.0f * (float)M_PI/segments;
+    
+    CCPoint *poli = (CCPoint*)calloc(sizeof(CCPoint)*(segments+1), 1);
+    if (!poli)
+        return;
+    
+    for(unsigned int i = 0;i <= segments; i++) {
+        float rads = i*coef;
+        poli[i].x = radius * cosf(rads + angle) * scaleX + center.x;
+        poli[i].y = radius * sinf(rads + angle) * scaleY + center.y;
+    }
+    ccDrawSolidPoly(poli, segments + 1, color);
+}
+
 void Player::draw()
 {
     if (!this->hasWon)
@@ -166,7 +184,9 @@ void Player::draw()
         ccDrawColor4B(this->r * 255, this->g * 255, this->b * 255, 255);
         CCPoint point = CCPointMake(0, 0);
         ccDrawPoint(point);
-    
+        
+        ccColor4F playerColor = {this->r, this->g, this->b, 1.0f};
+        ccDrawSolidCircle(point, 3, 0, 16, 1.0, 1.0, playerColor);
     
         if (this->startAnimationTime > 0.0)
         {

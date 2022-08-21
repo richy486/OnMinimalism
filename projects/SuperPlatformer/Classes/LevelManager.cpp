@@ -653,13 +653,19 @@ void LevelManager::setupLevel(int index, cocos2d::CCArray *blocks, int *exits)
             {
                 float colourComponent = 1.0 - (i * colourIncrease);
                 PassableBlock *block = new PassableBlock();
-                block->init(200 - (i* 10), 200 - (i* 10), CCPointMake((size.width*0.5), (size.height*0.5)), colourComponent, colourComponent, colourComponent);
+                block->init(300 - (i* 10), 230 - (i* 10), CCPointMake((size.width*0.5), (size.height*0.5)), colourComponent, colourComponent, colourComponent);
                 blocks->addObject(block);
             }
             
             CollectableBlock *collectable = new CollectableBlock();
-            collectable->init(CCPointMake((size.width*0.5), (size.height*0.5)), "potato.png");
+            collectable->init(CCPointMake((size.width*0.5), (size.height*0.5) + 10), "potato.png");
             blocks->addObject(collectable);
+            
+            CCLabelTTF* label = CCLabelTTF::create("hello @HenryTudorVIII\n how are you?", "Helvetica", 12,
+                                                  CCSizeMake(245, 32), kCCTextAlignmentCenter);
+            label->setColor(ccc3(255,255,255));
+            label->setPosition(CCPointMake((size.width*0.5), (size.height*0.5) - 25));
+            blocks->addObject(label);
             
             exits[EXIT_TOP] = -1;
             exits[EXIT_BOTTOM] = 20;

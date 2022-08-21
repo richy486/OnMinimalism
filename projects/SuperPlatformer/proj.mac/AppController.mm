@@ -50,7 +50,7 @@ static AppDelegate s_sharedApplication;
 		// set window parameters
 		[window becomeFirstResponder];
 		[window setContentView:glView];
-		[window setTitle:@"On Minimalism"];
+		[window setTitle:@"hello..."];
 		[window makeKeyAndOrderFront:self];
 		[window setAcceptsMouseMovedEvents:NO];
 
